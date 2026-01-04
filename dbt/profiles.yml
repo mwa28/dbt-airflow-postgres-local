@@ -1,0 +1,24 @@
+local:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: localhost
+      port: 5432
+      user: operator
+      password: password
+      dbname: analytics
+      schema: dev
+      threads: 1
+real_estate_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: postgres
+      port: 5432
+      user: operator
+      password: password
+      dbname: analytics
+      schema: dev
+      threads: 1

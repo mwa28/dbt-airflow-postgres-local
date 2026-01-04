@@ -1,0 +1,349 @@
+
+version: 2
+
+sources:
+  - name: raw
+    schema: dev_raw
+    tables:
+      - name: sales
+      - name: leads
+
+models:
+  - name: dim_lead
+    config:
+      contract: {enforced: true}
+      on_schema_change: append_new_columns
+    
+    constraints:
+      - type: primary_key
+        columns: [id]
+
+    columns:
+      - name: date_of_last_request
+        data_type: timestamptz
+      - name: created_at
+        data_type: timestamptz
+      - name: date_of_last_contact
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+      - name: campaign
+        data_type: string
+      - name: method_of_contact
+        data_type: string
+      - name: lead_source
+        data_type: string
+      - name: status_name
+        data_type: string
+      - name: location
+        data_type: string
+      - name: lead_type
+        data_type: string
+        constraints:
+          - type: not_null
+      - name: area_id
+        data_type: string
+      - name: customer_id
+        constraints:
+          - type: not_null
+        data_type: string
+      - name: id
+        constraints:
+          - type: not_null
+          - type: unique
+        data_type: string
+      - name: user_id
+        data_type: string
+      - name: lead_type_id
+        constraints:
+          - type: not_null
+        data_type: string
+      - name: best_time_to_call
+        data_type: string
+      - name: buyer
+        constraints:
+          - type: not_null
+        data_type: boolean
+      - name: seller
+        data_type: boolean
+        constraints:
+          - type: not_null
+      - name: budget
+        data_type: string
+      - name: commercial
+        data_type: boolean
+        constraints:
+          - type: not_null
+      - name: merged
+        data_type: boolean
+        constraints:
+          - type: not_null
+      - name: compound_id
+        data_type: string
+      - name: developer_id
+        data_type: string
+      - name: meeting_flag
+        data_type: string
+      - name: do_not_call
+        data_type: boolean
+        constraints:
+          - type: not_null
+
+  - name: dim_property_type
+    config:
+      contract: {enforced: true}
+      on_schema_change: append_new_columns
+    
+    constraints:
+      - type: primary_key
+        columns: [property_type_id]
+      - type: not_null
+        columns: [property_type, property_type_id]
+
+    columns:
+      - name: property_type_id
+        data_type: string
+        constraints:
+          - type: unique
+      - name: property_type
+        data_type: string
+
+  - name: dim_sales_category
+    config:
+      contract: {enforced: true}
+      on_schema_change: append_new_columns
+    
+    constraints:
+      - type: primary_key
+        columns: [sale_category_id]
+      - type: not_null
+        columns: [sale_category, sale_category_id]
+
+    columns:
+      - name: sale_category_id
+        data_type: bigint
+        constraints:
+          - type: unique
+      - name: sale_category
+        data_type: string
+
+  - name: dim_location
+    config:
+      contract: {enforced: true}
+      on_schema_change: append_new_columns
+    
+    constraints:
+      - type: primary_key
+        columns: [unit_location_id]
+      - type: not_null
+        columns: [unit_location, unit_location_id]
+
+    columns:
+      - name: unit_location_id
+        data_type: bigint
+        constraints:
+          - type: unique
+      - name: unit_location
+        data_type: string
+
+  - name: fact_sales
+    config:
+      contract: {enforced: true}
+      on_schema_change: append_new_columns
+
+    constraints:
+      - type: primary_key
+        columns: [id]
+      - type: foreign_key
+        columns: ["lead_id"]
+        to: ref('dim_lead')
+        to_columns: ['id']
+      - type: foreign_key
+        columns: ["unit_location_id"]
+        to: ref('dim_location')
+        to_columns: ['unit_location_id']
+      - type: foreign_key
+        columns: ["sale_category_id"]
+        to: ref('dim_sales_category')
+        to_columns: ['sale_category_id']
+      - type: foreign_key
+        columns: ["property_type_id"]
+        to: ref('dim_property_type')
+        to_columns: ['property_type_id']
+
+    columns:
+      - name: id	
+        data_type: string
+        constraints:
+          - type: not_null
+          - type: unique
+      - name: unit_value	
+        data_type: bigint
+      - name: actual_value	
+        data_type: bigint
+      - name: expected_value	
+        data_type: bigint
+      - name: date_of_reservation	
+        data_type: timestamptz
+      - name: reservation_update_date	
+        data_type: timestamptz
+      - name: date_of_contraction	
+        data_type: timestamptz
+      - name: sale_category_id	
+        constraints:
+          - type: not_null
+        data_type: bigint
+      - name: unit_location_id	
+        constraints:
+          - type: not_null
+        data_type: bigint
+      - name: area_id	
+        constraints:
+          - type: not_null
+        data_type: string
+      - name: compound_id	
+        constraints:
+          - type: not_null
+        data_type: string
+      - name: lead_id	
+        constraints:
+          - type: not_null
+        data_type: string
+      - name: years_of_payment	
+        data_type: bigint
+      - name: property_type_id
+        constraints:
+          - type: not_null
+        data_type: string
+
+      
+  - name: clean_leads
+    config:
+      contract: {enforced: true}
+      on_schema_change: append_new_columns
+    columns:
+      - name: date_of_last_request
+        data_type: timestamptz
+      - name: created_at
+        data_type: timestamptz
+      - name: date_of_last_contact
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+      - name: campaign
+        data_type: string
+      - name: method_of_contact
+        data_type: string
+      - name: lead_source
+        data_type: string
+      - name: status_name
+        data_type: string
+      - name: location
+        data_type: string
+      - name: lead_type
+        data_type: string
+      - name: area_id
+        data_type: string
+      - name: customer_id
+        constraints:
+          - type: not_null
+        data_type: string
+      - name: id
+        constraints:
+          - type: not_null
+        data_type: string
+      - name: user_id
+        data_type: string
+      - name: lead_type_id
+        constraints:
+          - type: not_null
+        data_type: string
+      - name: best_time_to_call
+        data_type: string
+      - name: buyer
+        constraints:
+          - type: not_null
+        data_type: boolean
+      - name: seller
+        data_type: boolean
+        constraints:
+          - type: not_null
+      - name: commercial
+        data_type: boolean
+        constraints:
+          - type: not_null
+      - name: merged
+        data_type: boolean
+        constraints:
+          - type: not_null
+      - name: do_not_call
+        data_type: boolean
+        constraints:
+          - type: not_null
+      - name: budget
+        data_type: string
+      - name: compound_id
+        data_type: string
+      - name: developer_id
+        data_type: string
+      - name: meeting_flag	
+        data_type: string
+
+  - name: clean_sales
+
+    config:
+      contract: {enforced: true}
+      on_schema_change: append_new_columns
+
+    constraints:
+      - type: primary_key
+        columns: [id]
+
+    columns:
+      - name: id
+        data_type: string
+        constraints:
+          - type: not_null
+          - type: unique
+      - name: unit_value
+        data_type: bigint
+      - name: actual_value
+        data_type: bigint
+      - name: expected_value
+        data_type: bigint
+      - name: date_of_reservation
+        data_type: timestamptz
+      - name: reservation_update_date
+        data_type: timestamptz
+      - name: date_of_contraction
+        data_type: timestamptz
+      - name: sale_category_id
+        constraints:
+          - type: not_null
+        data_type: bigint
+      - name: unit_location_id
+        constraints:
+          - type: not_null
+        data_type: bigint
+      - name: sale_category
+        data_type: string
+      - name: area_id
+        data_type: string
+      - name: compound_id
+        constraints:
+          - type: not_null
+        data_type: string
+      - name: lead_id
+        constraints:
+          - type: not_null
+        data_type: string
+      - name: unit_location
+        data_type: string
+      - name: property_type
+        data_type: string
+      - name: years_of_payment
+        data_type: bigint
+      - name: property_type_id
+        constraints:
+          - type: not_null
+        data_type: string

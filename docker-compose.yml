@@ -1,0 +1,56 @@
+services:
+  # Minio Storage Server
+  minio:
+    image: quay.io/minio/minio:latest
+    environment:
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      # - MINIO_ADMIN=localhost
+    ports:
+      - 9001:9001
+      - 9000:9000
+    entrypoint: >
+      /bin/sh -c "
+      minio server /data --console-address ':9001' &
+      sleep 10;
+      mc alias set myminio http://localhost:9000 minioadmin minioadmin;
+      mc mb myminio/warehouse --ignore-existing;
+      mc mb myminio/csv --ignore-existing;
+      tail -f /dev/null"
+    volumes:
+      - minio_data:/data
+
+  postgres:
+    image: docker.io/postgres:18-alpine
+    environment:
+      - POSTGRES_USER=operator
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=analytics
+    ports:
+      - 5432:5432
+
+  adminer:
+    image: docker.io/adminer:latest
+    ports:
+      - 8080:8080
+
+  airflow:
+    build: 
+      context: .
+      dockerfile: airflow/Dockerfile
+    image: airflow-standalone:latest
+    ports:
+      - 9080:8080
+    environment:
+      - TZ=UTC
+      - AIRFLOW_HOME=/opt/airflow
+      - AIRFLOW__CORE__LOAD_EXAMPLES=false
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./dbt:/opt/dbt
+      - ./ingestion:/opt/ingestion 
+      - ./ingestion/requirements.txt:/requirements.txt
+
+
+volumes:
+  minio_data:
